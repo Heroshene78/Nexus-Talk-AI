@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusTalk AI – Advanced Rule-Based Chatbot</title>
+    <!-- Tailwind CSS CDN for pristine, modern layouts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons Web Script (mimics lucide-react) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased h-screen overflow-hidden">
+    
+    <!-- App Container -->
+    <div id="app" class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar: Session History, Search & Stats -->
+        <aside id="sidebar" class="w-80 border-r border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md flex flex-col transition-all duration-300 relative z-30 transform md:translate-x-0 -translate-x-full fixed md:static h-full">
+            
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                        <i data-lucide="bot" class="w-5 h-5"></i>
+                    </div>
+                    <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">NexusTalk AI</span>
+                </div>
+                <button id="close-sidebar-mobile" class="md:hidden p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Session Stats Panel -->
+            <div class="p-4 bg-slate-50/50 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800">
+                <h4 class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Session Statistics</h4>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <p class="text-lg font-bold text-indigo-600" id="stat-total-messages">0</p>
+                        <p class="text-[10px] text-slate-400 font-medium">Messages Sent</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <p class="text-lg font-bold text-indigo-600" id="stat-active-time">0m</p>
+                        <p class="text-[10px] text-slate-400 font-medium">Chat Sessions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Chats -->
+            <div class="p-3 border-b border-slate-200 dark:border-slate-800">
+                <div class="relative">
+                    <input type="text" id="search-history" placeholder="Search saved chats..." class="w-full bg-slate-100 dark:bg-slate-900 text-xs py-1.5 pl-8 pr-3 rounded-lg border-none focus:ring-1 focus:ring-indigo-500 outline-none">
+                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                </div>
+            </div>
+
+            <!-- Saved Conversations List -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-3" id="history-sessions-list">
+                <!-- Group components will be injected iteratively by javascript -->
+                <div class="text-center py-8 text-xs text-slate-400 dark:text-slate-500" id="history-empty-message">
+                    <i data-lucide="message-square" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                    No previous chats saved yet.
+                </div>
+            </div>
+
+            <!-- Sidebar Footer Controls -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                <button id="clear-all-history-btn" class="w-full flex items-center justify-center space-x-2 text-xs py-2 px-3 border border-red-200 dark:border-red-900/30 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    <span>Clear All Conversations</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Sidebar overlay for mobile devices -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-20 hidden md:hidden"></div>
+
+        <!-- Main Chat Area -->
+        <main class="flex-1 flex flex-col h-full bg-gradient-to-tr from-slate-50 via-slate-100/30 to-indigo-50/10 dark:from-slate-900 dark:via-slate-950/20 dark:to-indigo-950/5 relative overflow-hidden">
+            
+            <!-- Main Header bar -->
+            <header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/30 backdrop-blur-md px-4 flex items-center justify-between relative z-10 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <button id="open-sidebar-btn" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 md:hidden">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <!-- Core Info Header -->
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <div class="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-600 border border-indigo-500/20 shadow-inner">
+                                <i data-lucide="bot" class="w-6 h-6"></i>
+                            </div>
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-1.5">
+                                <h3 class="font-bold text-sm tracking-tight text-slate-800 dark:text-slate-100">NexusTalk Bot</h3>
+                                <span class="text-[9px] bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Rule Engine</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium">Internship Project Sandbox</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side Controls of Header -->
+                <div class="flex items-center space-x-2">
+                    <!-- Help Trigger -->
+                    <button id="help-menu-btn" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" title="Help Guide">
+                        <i data-lucide="help-circle" class="w-5 h-5"></i>
+                    </button>
+                    <!-- Profile Settings -->
+                    <button id="open-settings-btn" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" title="User Profile Settings">
+                        <i data-lucide="user-cog" class="w-5 h-5"></i>
+                    </button>
+                    <!-- Theme Toggle Option -->
+                    <button id="theme-toggle-btn" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" title="Toggle Theme">
+                        <i id="theme-icon" data-lucide="moon" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Stage -->
+            <div id="chat-stage" class="flex-1 overflow-y-auto px-4 py-6 space-y-6 flex flex-col">
+                
+                <!-- Welcome/Landing Screen Card -->
+                <div id="welcome-panel" class="max-w-2xl mx-auto my-auto p-6 md:p-8 bg-white/60 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 backdrop-blur-md rounded-2xl shadow-xl space-y-6 text-center transition-all duration-500">
+                    <div class="w-16 h-16 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 mx-auto shadow-inner border border-indigo-500/20">
+                        <i data-lucide="bot" class="w-10 h-10"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Welcome to <span class="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">NexusTalk AI</span></h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto">
+                            A highly polished, advanced rule-based AI chatbot built as a professional Software Engineering Internship portfolio project.
+                        </p>
+                    </div>
+
+                    <!-- Personalizer Header -->
+                    <div id="welcome-name-setup" class="bg-indigo-50/50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100/50 dark:border-indigo-900/20 max-w-sm mx-auto space-y-3">
+                        <label class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 block">Let's coordinate! What is your name?</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="setup-username-input" placeholder="e.g. Alex" class="flex-1 bg-white dark:bg-slate-950 text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 outline-none focus:border-indigo-500">
+                            <button id="save-setup-name-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 font-semibold rounded-lg transition-colors">Start Chatting</button>
+                        </div>
+                    </div>
+
+                    <div id="welcome-ready-area" class="hidden max-w-sm mx-auto space-y-2">
+                        <p class="text-xs font-medium text-slate-400">Greeting you as: <span id="current-user-display" class="font-bold text-indigo-600 dark:text-indigo-400">Intern</span></p>
+                        <button id="start-new-session" class="w-full bg-gradient-to-r from-indigo-600 to-violet-500 text-white text-sm py-2.5 px-4 font-bold rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/35 transition-all">Begin Chat Session</button>
+                    </div>
+
+                    <!-- Feature Row chips info -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-left">
+                        <div class="p-3 bg-white/40 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800 rounded-xl">
+                            <div class="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 mb-1">
+                                <i data-lucide="zap" class="w-4 h-4"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">Fast & Local</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Built entirely with robust client + server deterministic matching. Instant replies.</p>
+                        </div>
+                        <div class="p-3 bg-white/40 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800 rounded-xl">
+                            <div class="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 mb-1">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">Persistent</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Saves your profiles, conversation log streams, and analytics stats seamlessly.</p>
+                        </div>
+                        <div class="p-3 bg-white/40 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800 rounded-xl">
+                            <div class="flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 mb-1">
+                                <i data-lucide="code-2" class="w-4 h-4"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">34+ Intents</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Covers python tips, interview checklists, ML, technology facts, and coding tips!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Stream container (hidden initially until active session) -->
+                <div id="messages-container" class="hidden flex-1 flex flex-col space-y-4 max-w-3xl mx-auto w-full pb-8">
+                    <!-- Message bubbles injected here -->
+                </div>
+
+            </div>
+
+            <!-- Suggestion Chips Scroll Area (Sticky above input) -->
+            <div class="px-4 py-2 border-t border-slate-200/40 dark:border-slate-800/20 bg-slate-50/50 dark:bg-slate-950/20 z-10 flex items-center justify-start overflow-x-auto whitespace-nowrap space-x-2 no-scrollbar">
+                <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400/80 mr-1 flex items-center shrink-0">
+                    <i data-lucide="compass" class="w-3.5 h-3.5 mr-1 text-slate-400"></i> Try asking:
+                </span>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Give me a python tip</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Explain artificial intelligence</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Resume tips</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Coding tips</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Give me a motivational quote</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Tell me a tech fact</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Data science roadmap</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Interview preparation tips</button>
+                <button class="chip-suggest select-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-full px-3 py-1 text-xs text-slate-600 dark:text-slate-300 transition-all font-medium">Portfolio project ideas</button>
+            </div>
+
+            <!-- Fixed Input Bar at the Bottom -->
+            <footer class="p-4 border-t border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md relative z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]">
+                <form id="chat-form" class="max-w-3xl mx-auto flex items-center space-x-3">
+                    
+                    <button type="button" id="clear-chat-btn" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-500 border border-slate-200/40 dark:border-slate-800/40 transition-colors cursor-pointer shrink-0" title="Restart / Clear Current Chat">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </button>
+
+                    <div class="relative flex-1">
+                        <input type="text" id="chat-input" placeholder="Type a message or asking command..." class="w-full bg-slate-50 dark:bg-slate-900 text-sm px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none shadow-inner" disabled>
+                        <!-- Character / Typo indicators -->
+                    </div>
+
+                    <button type="button" id="export-chat-btn" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-500 border border-slate-200/40 dark:border-slate-800/40 transition-colors shrink-0" title="Export Current Chat Log as TEXT">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                    </button>
+
+                    <button type="submit" id="send-btn" class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white p-3 rounded-xl shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 transition-all text-sm font-bold flex items-center justify-center shrink-0 cursor-pointer" disabled>
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- Help Modal Overlay -->
+    <div id="help-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-slate-900 max-w-xl w-full rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xl p-6 relative flex flex-col max-h-[85vh]">
+            <button id="close-help-modal" class="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600/10 flex items-center justify-center text-indigo-600">
+                    <i data-lucide="help-circle" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-bold text-lg tracking-tight">NexusTalk AI Help Guide</h3>
+            </div>
+            <div class="flex-1 overflow-y-auto pr-1 space-y-4 text-xs text-slate-500 dark:text-slate-400">
+                <p>NexusTalk AI is an interactive chatbot tailored for software engineers and web developers during internship mock previews. It leverages an extensive rule intelligence model of <strong>34 distinct intents and 100+ replies</strong>.</p>
+                <div>
+                    <h4 class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide text-[10px] mb-2">💡 Quick Starter Commands</h4>
+                    <ul class="grid grid-cols-2 gap-2">
+                        <li class="bg-slate-50 dark:bg-slate-950 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <strong>"python tips"</strong> - Generates clean code tips and syntaxes.
+                        </li>
+                        <li class="bg-slate-50 dark:bg-slate-950 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <strong>"resume cv tips"</strong> - Tips to optimize and beat filters.
+                        </li>
+                        <li class="bg-slate-50 dark:bg-slate-950 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <strong>"tech facts"</strong> - Exciting computer trivia and timelines.
+                        </li>
+                        <li class="bg-slate-50 dark:bg-slate-950 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <strong>"project ideas"</strong> - Comprehensive web-app and backend projects.
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide text-[10px] mb-2">📋 Complete Capability Checklist</h4>
+                    <ul class="space-y-1.5 list-disc pl-4">
+                        <li>Persistent history grouped by chronological dates.</li>
+                        <li>Export active dialog states to plain text files (.txt).</li>
+                        <li>Change names naturally under Profile settings.</li>
+                        <li>Perform filtering searches across recorded historical lists.</li>
+                        <li>One-tap suggest chips for continuous prompts.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Profile Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-slate-900 max-w-sm w-full rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xl p-6 relative">
+            <button id="close-settings-modal" class="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600/10 flex items-center justify-center text-indigo-600">
+                    <i data-lucide="user-cog" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-bold text-lg tracking-tight">Profile Settings</h3>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div class="space-y-1.5">
+                    <label class="font-semibold text-slate-500 dark:text-slate-400">Update Username</label>
+                    <input type="text" id="settings-username-input" placeholder="Update your name..." class="w-full bg-slate-50 dark:bg-slate-950 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 outline-none focus:border-indigo-500 text-sm">
+                </div>
+                <button id="save-settings-btn" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors text-sm">
+                    Save Profile
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
