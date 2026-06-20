@@ -6,6 +6,11 @@ Developed with deterministic branching maps instead of deep neural models, **Nex
 
 ---
 
+🔗 Live Demo: https://ai.studio/apps/3c0d210d-8b08-46f2-b5d6-3e478cf8af39?fullscreenApplet=true
+
+Designed as an AI internship project, NexusTalk AI demonstrates clean software architecture, an engaging user experience, and practical rule-based conversational logic without relying on external AI APIs.
+-----
+
 ## 🎯 Objectives
 - **Zero-Latency Rules Matrix**: Synthesize and clean user inputs through automated case foldings, regex boundary screenings, and word tokens extraction.
 - **Durable Memory & Session Tracks**: Build local storage managers recording usernames, structural themes, and multiple historic active dialogue sessions.
@@ -84,3 +89,4 @@ Identify any of these custom triggers to test the bot's categorical rules:
 1. **SQLite Database Sync**: Add a lightweight SQLite database backup layer inside `app.py` for server-side persistence.
 2. **Dynamic Flowcharts**: Render visualized graphs of matched rule branches using D3 or Mermaid inside chat bubbles.
 3. **Regex Expansion Panels**: Add a developer dashboard allowing administrators to test and modify matching weights dynamically.
+   
